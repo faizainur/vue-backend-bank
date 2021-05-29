@@ -8,6 +8,8 @@ var passport = require("passport"),
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const CLIENT_ID = process.env.CLIENT_ID;
 const WEB_CLIENT_URL = process.env.WEB_CLIENT_URL;
+const jwt_decode = require("jwt-decode");
+const querystring = require("querystring");
 
 passport.use(
   "provider",
@@ -22,14 +24,20 @@ passport.use(
       callbackURL: "http://localhost:4000/callback",
       scope: ["profile", "openid", "offline", "ru_financial_data"],
     },
-    function (accessToken, refreshToken, profile, done) {
+    function (accessToken, refreshToken, result, profile, done) {
+      // console.log(req);
       // console.log(accessToken);
       // console.log(refreshToken);
-      // console.log(profile);
+      // // console.log(profile);
+      // console.log(result);
+      var idToken = result.id_token;
+      var decoded = jwt_decode(idToken);
+      console.log(decoded.sub);
       if (accessToken && refreshToken) {
         return done(null, true, {
           accessToken: accessToken,
           refreshToken: refreshToken,
+          email: decoded.sub,
         });
       } else {
         return done(null, false);
@@ -50,20 +58,6 @@ router.get(
   })
 );
 
-// router.get("/callback", passport.authenticate("provider"), (req, res) => {
-//   res.redirect("https://www.google.com");
-// });
-
-// router.get(
-//   "/callback",
-//   passport.authenticate("provider", {
-//     // successRedirect: "/",
-//     // failureRedirect: "/login",
-//     state: "stateAdevcatena",
-//     session: false,
-//   })
-// );
-
 router.get("/callback", (req, res, next) => {
   passport.authenticate(
     "provider",
@@ -73,18 +67,13 @@ router.get("/callback", (req, res, next) => {
     },
     (err, user, info) => {
       if (user) {
-        console.log("info" + JSON.stringify(info));
-        // return res.json(info);
         console.log(WEB_CLIENT_URL);
-        return res.redirect(
-          url.format({
-            pathname: WEB_CLIENT_URL,
-            query: {
-              accessToken: info.accessToken,
-              refreshToken: info.refreshToken,
-            },
-          })
-        );
+        const query = querystring.stringify({
+          email: info.email,
+          accessToken: info.accessToken,
+          refreshToken: info.refreshToken,
+        });
+        return res.redirect(WEB_CLIENT_URL + "?" + query);
       } else {
         return res.send("Unauthorized").status(401);
       }
