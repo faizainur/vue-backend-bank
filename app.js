@@ -3,12 +3,41 @@ var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
+var cors = require("cors");
 var passport = require("passport");
 
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 
 var app = express();
+
+var corsOptions = {
+  origin: [
+    "https://dashboard.catena.id",
+    "https://api.catena.id",
+    "https://catena.id",
+    "http://localhost:8080",
+    "https://bankA.catena.id",
+    "https://bankB.catena.id",
+    "https://gov.catena.id",
+    "https://admin.catena.id",
+  ],
+  methods: ["GET", "PUT", "POST", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Content-Length",
+    "Accept-Encoding",
+    "X-CSRF-Token",
+    "Authorization",
+    "accept",
+    "origin",
+    "Cache-Control",
+    "X-Requested-With",
+  ],
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 
 // view engine setup
 app.set("views", path.join(__dirname, "views"));
