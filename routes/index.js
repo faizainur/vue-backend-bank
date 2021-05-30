@@ -20,9 +20,7 @@ const strategy = new OAuth2Strategy(
   {
     authorizationURL: "https://hydra.catena.id/client/oauth2/auth",
     tokenURL: "https://hydra.catena.id/client/oauth2/token",
-    // clientID: "d676e5d0-93e2-44c1-a9e8-adbb7c40544b",
     clientID: CLIENT_ID,
-    // clientSecret: "KHmr_OrR1JStN0UmHXaYJLJLMy",
     clientSecret: CLIENT_SECRET,
     callbackURL: CALLBACK_URL,
     scope: ["profile", "openid", "offline", "ru_financial_data"],
