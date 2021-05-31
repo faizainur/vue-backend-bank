@@ -19,6 +19,7 @@
     "morgan": "~1.9.1",
     "passport": "^0.4.1",
     "passport-oauth": "^1.0.0",
-    "passport-oauth2": "^1.5.0"
+    "passport-oauth2": "^1.5.0",
+    "passport-oauth2-refresh": "^2.0.2"
   }
 }

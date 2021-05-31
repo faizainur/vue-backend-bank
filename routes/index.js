@@ -8,6 +8,9 @@ const querystring = require("querystring");
 var passport = require("passport"),
   OAuth2Strategy = require("passport-oauth").OAuth2Strategy;
 const MongoClient = require("mongodb").MongoClient;
+const refresh = require("passport-oauth2-refresh");
+const { access } = require("fs");
+const { info } = require("console");
 
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const CLIENT_ID = process.env.CLIENT_ID;
@@ -43,6 +46,7 @@ const strategy = new OAuth2Strategy(
 );
 
 passport.use("provider", strategy);
+refresh.use("provider", strategy);
 
 router.get("/", function (req, res, next) {
   res.send("login");
@@ -67,6 +71,52 @@ MongoClient.connect(
 
     const db = client.db("oauth2");
     const collection = db.collection("authorized");
+
+    router.get("/refresh", async (req, res, next) => {
+      try {
+        var data = await collection.findOne({
+          email: req.query.email,
+          bankName: BANK_NAME,
+        });
+        // console.log(data.refreshToken);
+        // return res.send(data);
+
+        refresh.requestNewAccessToken(
+          "provider",
+          data.refreshToken,
+          async (err, accessToken, refreshToken) => {
+            try {
+              if (err) {
+                console.log(err);
+                res.send(err);
+              } else {
+                var response = await collection.findOneAndUpdate(
+                  {
+                    email: req.query.email,
+                    bankName: BANK_NAME,
+                  },
+                  {
+                    $set: {
+                      email: req.query.email,
+                      bankName: BANK_NAME,
+                      refreshToken: refreshToken,
+                    },
+                  }
+                );
+                return res.json({
+                  accessToken: accessToken,
+                  refreshToken: refreshToken,
+                });
+              }
+            } catch (error) {
+              return res.send(error);
+            }
+          }
+        );
+      } catch (error) {
+        return res.send(error);
+      }
+    });
 
     router.get("/callback", (req, res, next) => {
       passport.authenticate(
